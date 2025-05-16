@@ -10,7 +10,12 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -22,6 +27,7 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @ApiCreatedResponse({ description: 'Post created successfully' })
+  @ApiBody({ type: CreatePostDto })
   @UseGuards(JwtAuthGuard)
   @Post()
   create(
@@ -33,19 +39,48 @@ export class PostsController {
     return this.postsService.create(createPostDto, req.user.userId);
   }
 
-  @ApiOkResponse({ description: 'Get all posts' })
+  @ApiOkResponse({
+    description: 'Get all posts',
+    schema: {
+      example: [
+        {
+          id: 1,
+          title: 'My First Post',
+          content: 'This is the content of the post.',
+          published: true,
+          author: { id: 1, name: 'John Doe' },
+          createdAt: '2025-05-15T00:00:00.000Z',
+          updatedAt: '2025-05-15T00:00:00.000Z',
+        },
+      ],
+    },
+  })
   @Get()
   findAll() {
     return this.postsService.findAll();
   }
 
-  @ApiOkResponse({ description: 'Get a post by id' })
+  @ApiOkResponse({
+    description: 'Get a post by id',
+    schema: {
+      example: {
+        id: 1,
+        title: 'My First Post',
+        content: 'This is the content of the post.',
+        published: true,
+        author: { id: 1, name: 'John Doe' },
+        createdAt: '2025-05-15T00:00:00.000Z',
+        updatedAt: '2025-05-15T00:00:00.000Z',
+      },
+    },
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(+id);
   }
 
   @ApiOkResponse({ description: 'Update a post' })
+  @ApiBody({ type: UpdatePostDto })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
