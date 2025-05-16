@@ -12,6 +12,8 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
   ApiCreatedResponse,
+  ApiBody,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -34,6 +36,12 @@ export class AuthController {
 
   @Post('register')
   @ApiCreatedResponse({ description: 'User successfully registered' })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User created',
+    type: CreateUserDto,
+  })
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
@@ -41,6 +49,12 @@ export class AuthController {
   @Post('login')
   @ApiOkResponse({ description: 'User successfully logged in' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'JWT access token',
+    schema: { example: { access_token: 'jwt.token.here' } },
+  })
   async login(@Body() loginDto: LoginDto): Promise<{ access_token: string }> {
     const user = await this.authService.validateUser(
       loginDto.email,
@@ -59,7 +73,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  @ApiOkResponse({ description: 'Returns the user profile' })
+  @ApiOkResponse({
+    description: 'Returns the user profile',
+    schema: { example: { userId: 1, username: 'john@example.com' } },
+  })
   getProfile(@Request() req: RequestWithUser) {
     return req.user;
   }
